@@ -506,8 +506,8 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-se
 const SUPABASE_URL = 'https://jwprqjgkeknkrswclstw.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp3cHJxamdrZWtua3Jzd2Nsc3R3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQwMjAyNjIsImV4cCI6MjA4OTU5NjI2Mn0.y5or3FgV0Ef5AOrcVLsugRa3up4xjHfrmmu4Sk8WWOk';
 const DEFAULT_GEMINI_KEY = 'AIzaSyBgs9hn34KZdKUavajDn0jwjP44pT1gP0k';
-const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
-if (!supabase) { console.error('Supabase library failed to load'); document.getElementById('auth-error').textContent = 'Failed to load authentication library. Please refresh.'; document.getElementById('auth-error').style.display = 'block'; }
+const sb = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+if (!sb) { console.error('Supabase library failed to load'); document.getElementById('auth-error').textContent = 'Failed to load authentication library. Please refresh.'; document.getElementById('auth-error').style.display = 'block'; }
 
 // ─── CONSTANTS ──────────────────────────────────────────────
 const STAGES = ['Idea / scoping','Abstract drafted','Poster drafted','Submitted'];
@@ -542,7 +542,7 @@ async function doLogin() {
   const errEl = document.getElementById('auth-error');
   errEl.style.display = 'none';
   if (!email || !password) { errEl.textContent = 'Please enter email and password.'; errEl.style.display = 'block'; return; }
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  const { error } = await sb.auth.signInWithPassword({ email, password });
   if (error) { errEl.textContent = error.message; errEl.style.display = 'block'; }
 }
 
@@ -553,20 +553,20 @@ async function doSignup() {
   errEl.style.display = 'none';
   if (!email || !password) { errEl.textContent = 'Please enter email and password.'; errEl.style.display = 'block'; return; }
   if (password.length < 6) { errEl.textContent = 'Password must be at least 6 characters.'; errEl.style.display = 'block'; return; }
-  const { error } = await supabase.auth.signUp({ email, password });
+  const { error } = await sb.auth.signUp({ email, password });
   if (error) { errEl.textContent = error.message; errEl.style.display = 'block'; }
   else { errEl.style.display = 'block'; errEl.style.color = 'var(--success)'; errEl.textContent = 'Account created! Check your email to confirm, then sign in.'; }
 }
 
 async function doLogout() {
-  await supabase.auth.signOut();
+  await sb.auth.signOut();
   currentUser = null;
   document.getElementById('login-screen').style.display = 'flex';
   document.querySelector('.app').style.display = 'none';
 }
 
 // Listen for auth state changes
-supabase.auth.onAuthStateChange(async (event, session) => {
+sb.auth.onAuthStateChange(async (event, session) => {
   if (session?.user) {
     currentUser = session.user;
     document.getElementById('login-screen').style.display = 'none';
@@ -660,7 +660,7 @@ async function loadConferences() {
 
 // ─── SAVE HELPERS ────────────────────────────────────────────
 async function saveConference(conf) {
-  await supabase.from('conferences').upsert({
+  await sb.from('conferences').upsert({
     id: conf.id,
     name: conf.name,
     location: conf.loc,
@@ -682,7 +682,7 @@ async function saveConference(conf) {
 }
 
 async function saveUserStatus(confId, fields) {
-  await supabase.from('user_conference_status').upsert({
+  await sb.from('user_conference_status').upsert({
     user_id: currentUser.id,
     conference_id: confId,
     ...fields,
@@ -691,7 +691,7 @@ async function saveUserStatus(confId, fields) {
 }
 
 async function saveProfile() {
-  await supabase.from('user_profiles').update({
+  await sb.from('user_profiles').update({
     research_tags: tagBank,
     active_tags: activeTags,
     filter_tags: filterTags,
@@ -1006,7 +1006,7 @@ async function addConfManual() {
     source: 'manual'
   };
 
-  const { data: inserted, error } = await supabase.from('conferences').insert(newConf).select().single();
+  const { data: inserted, error } = await sb.from('conferences').insert(newConf).select().single();
   if (error) { alert('Error adding conference: ' + error.message); return; }
 
   ['f-name','f-loc','f-dates','f-ddl','f-price','f-url','f-tags','f-notes'].forEach(id=>document.getElementById(id).value='');
@@ -1215,7 +1215,7 @@ async function addToInbox(i) {
     source: 'ai'
   };
 
-  await supabase.from('conferences').insert(newConf);
+  await sb.from('conferences').insert(newConf);
   await loadConferences();
   saveTags(); renderFilterBar(); render(); badges();
 
@@ -1526,7 +1526,7 @@ function saveSettings() {
 }
 async function clearAllData() {
   if(!confirm('This will remove all your personal statuses and reset your profile. Shared conferences will remain. Are you sure?'))return;
-  await supabase.from('user_conference_status').delete().eq('user_id', currentUser.id);
+  await sb.from('user_conference_status').delete().eq('user_id', currentUser.id);
   localStorage.removeItem('conftracker_gemini_key');
   localStorage.removeItem('conftracker_alertdismissed');
   await loadConferences();
