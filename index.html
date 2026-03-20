@@ -222,7 +222,7 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-se
 
 ::-webkit-scrollbar{width:5px} ::-webkit-scrollbar-track{background:transparent} ::-webkit-scrollbar-thumb{background:var(--border-md);border-radius:3px}
 </style>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 </head>
 <body>
 
@@ -506,7 +506,8 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-se
 const SUPABASE_URL = 'https://jwprqjgkeknkrswclstw.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp3cHJxamdrZWtua3Jzd2Nsc3R3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQwMjAyNjIsImV4cCI6MjA4OTU5NjI2Mn0.y5or3FgV0Ef5AOrcVLsugRa3up4xjHfrmmu4Sk8WWOk';
 const DEFAULT_GEMINI_KEY = 'AIzaSyBgs9hn34KZdKUavajDn0jwjP44pT1gP0k';
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+if (!supabase) { console.error('Supabase library failed to load'); document.getElementById('auth-error').textContent = 'Failed to load authentication library. Please refresh.'; document.getElementById('auth-error').style.display = 'block'; }
 
 // ─── CONSTANTS ──────────────────────────────────────────────
 const STAGES = ['Idea / scoping','Abstract drafted','Poster drafted','Submitted'];
